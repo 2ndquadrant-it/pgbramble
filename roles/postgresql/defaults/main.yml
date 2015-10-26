@@ -1,0 +1,76 @@
+---
+#------------------------------------------------------------------------------
+# Basic PostgreSQL settings
+#------------------------------------------------------------------------------
+pg_version: '9.4'
+pg_cluster_name: 'main'
+pg_data_directory: '/srv/postgresql/{{ pg_version }}/{{ pg_cluster_name }}'
+pg_conf_directory: '/etc/postgresql/{{ pg_version }}/{{ pg_cluster_name }}'
+
+pg_encoding: 'UTF-8'
+pg_locale: 'en_GB.UTF-8'
+pg_timezone: 'Europe/London'
+
+pg_user: 'postgres'
+pg_group: 'postgres'
+pg_database_owner: 'postgres'
+
+#------------------------------------------------------------------------------
+# postgresql.conf variables
+#------------------------------------------------------------------------------
+# network settings
+listen_addresses: '*'
+max_connections: 100
+
+# memory settings
+shared_buffers: 256MB
+checkpoint_segments: 64
+checkpoint_completion_target: 0.9
+maintenance_work_mem: 50MB
+effective_cache_size: 800MB
+
+# base log settings
+log_destination: 'syslog'
+syslog_facility: 'LOCAL0'
+syslog_ident: 'postgres'
+
+# log customizations for better monitoring
+log_statement: 'ddl'
+log_min_duration_statement: 1000
+log_autovacuum_min_duration: 1000
+log_min_messages: info
+log_lock_waits: "on"
+log_checkpoints: "on"
+log_temp_files: 1024
+log_line_prefix: '%q%u@%d '
+
+# pg_stat_statements
+shared_preload_libraries: 'pg_stat_statements'
+pg_stat_statements_max: '1000'
+pg_stat_statements_track: 'all'
+
+# backup settings
+archive_mode: "on"
+wal_level: 'hot_standby'
+archive_command: 'rsync -a %p barman@192.168.1.137:/home/barman/main/incoming'
+
+# standby settings
+max_wal_senders: 10
+hot_standby: "on"
+hot_standby_feedback: "on"
+
+
+#------------------------------------------------------------------------------
+# pg_hba.conf variables
+#------------------------------------------------------------------------------
+pg_default_auth_method: 'trust'
+pg_net_access_ip: '0.0.0.0/0'
+pg_replication_ip: '0.0.0.0/0'
+#pg_net_access_ip: '192.168.1.0/24'
+#pg_replication_ip: '192.168.1.0/24'
+
+#------------------------------------------------------------------------------
+# OS configuration
+#------------------------------------------------------------------------------
+device: 'mmcblk0'
+device_readahead: 8192

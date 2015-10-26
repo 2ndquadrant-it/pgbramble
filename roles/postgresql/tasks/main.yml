@@ -1,0 +1,9 @@
+---
+- include: install_postgresql.yml
+  tags: [postgresql, postgresql-install]
+
+- include: configure_postgresql.yml
+  tags: [postgresql, postgresql-configure]
+
+- include: settings_system.yml
+  tags: [settings-system]

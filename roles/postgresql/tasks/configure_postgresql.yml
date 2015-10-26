@@ -1,0 +1,96 @@
+---
+#------------------------------------------------------------------------------
+# Cluster creation
+#------------------------------------------------------------------------------
+- name: PostgreSQL | Check if data directory does not exist
+  stat:
+    path: "{{ pg_data_directory }}"
+  register: pgdata_dir
+
+
+- name: PostgreSQL | Create the new cluster
+  shell: TZ={{ pg_timezone }} pg_createcluster -d {{ pg_data_directory }} --locale={{ pg_locale }} {{ pg_version }} {{ pg_cluster_name }}
+  when: pgdata_dir.stat.exists == False
+
+#------------------------------------------------------------------------------
+# postgresql.conf config
+#------------------------------------------------------------------------------
+- name: PostgreSQL | Check if postgresql.conf exists
+  stat:
+    path: /etc/postgresql/{{ pg_version }}/{{ pg_cluster_name }}/postgresql.conf
+  register: postgresql_conf
+
+
+- name: PostgreSQL | Append config to postgresql.conf
+  blockinfile:
+    dest: /etc/postgresql/{{ pg_version }}/{{ pg_cluster_name }}/postgresql.conf
+    insertafter: EOF
+    block: |
+      # network settings
+      listen_addresses = '{{ listen_addresses }}'
+      max_connections = {{ max_connections }}
+
+      # memory settings
+      shared_buffers = {{ shared_buffers }}
+      checkpoint_segments = {{ checkpoint_segments }}
+      checkpoint_completion_target = {{ checkpoint_completion_target }}
+      maintenance_work_mem = {{ maintenance_work_mem }}
+      effective_cache_size = {{ effective_cache_size }}
+
+      # base log settings
+      log_destination = '{{ log_destination }}'
+      syslog_facility = '{{ syslog_facility }}'
+      syslog_ident = '{{ syslog_ident }}'
+
+      # log customizations for better monitoring
+      log_statement = '{{ log_statement  }}'
+      log_min_duration_statement = {{ log_min_duration_statement }}
+      log_autovacuum_min_duration = {{ log_autovacuum_min_duration }}
+      log_min_messages = {{ log_min_messages }}
+      log_lock_waits = {{ log_lock_waits }}
+      log_checkpoints = {{ log_checkpoints }}
+      log_temp_files = {{ log_temp_files }}
+      log_line_prefix = '{{ log_line_prefix }}'
+
+      # pg_stat_statements
+      shared_preload_libraries = '{{ shared_preload_libraries }}'
+      pg_stat_statements.max = '{{ pg_stat_statements_max }}'
+      pg_stat_statements.track = '{{ pg_stat_statements_track }}'
+
+      # backup settings
+      #archive_mode = {{ archive_mode }}
+      #wal_level = {{ wal_level }}
+      #archive_command = {{ archive_command }}
+
+      # standby settings
+      #max_wal_senders = {{ max_wal_senders }}
+      #hot_standby = {{ hot_standby }}
+      #hot_standby_feedback = {{ hot_standby_feedback }}
+  when: postgresql_conf.stat.exists == True
+  notify: restart postgresql
+  tags:
+    - configuration
+    - postgresqlconf
+
+#------------------------------------------------------------------------------
+# pg_hba.conf config
+#------------------------------------------------------------------------------
+- name: PostgreSQL | Check if pg_hba.conf exists
+  stat: path=/etc/postgresql/{{ pg_version }}/{{ pg_cluster_name }}/pg_hba.conf
+  register: pghba_conf
+
+
+- name: PostgreSQL | Append config to pg_hba.conf
+  blockinfile:
+    dest: /etc/postgresql/{{ pg_version }}/{{ pg_cluster_name }}/pg_hba.conf
+    insertafter: EOF
+    block: |
+      # Local net access
+      host    all             all             {{ pg_net_access_ip }} {{pg_default_auth_method }}
+
+      # Replication
+      host    replication     replication     {{ pg_replication_ip }} {{pg_default_auth_method }}
+  when: pghba_conf.stat.exists == True
+  tags:
+    - configuration
+    - pghbaconf

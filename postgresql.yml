@@ -1,0 +1,7 @@
+---
+- name: 'PostgreSQL Educational Bramble Playbook | Database'
+  hosts: database
+  become: yes
+
+  roles:
+    - postgresql

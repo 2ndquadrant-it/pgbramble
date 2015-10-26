@@ -1,0 +1,16 @@
+---
+#------------------------------------------------------------------------------
+# barman.conf variables
+#------------------------------------------------------------------------------
+#[barman]
+barman_home: /var/lib/barman
+barman_user: barman
+log_file: /var/log/barman/barman.log
+compression: gzip
+reuse_backup: link
+minimum_redundancy: 1
+
+#[main]
+description: 'Main PostgreSQL Database'
+ssh_command: ssh postgres@pg
+conninfo: host=pg user=postgres

@@ -1,0 +1,4 @@
+---
+- include: postgresql.yml
+- include: barman.yml
+- include: nginx.yml

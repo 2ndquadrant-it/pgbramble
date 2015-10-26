@@ -1,0 +1,12 @@
+---
+- name: start postgresql
+  service: name=postgresql state=started
+
+- name: restart postgresql
+  service: name=postgresql state=restarted
+
+- name: restart rsyslog
+  service: name=rsyslog state=restarted
+
+- name: run rc.local
+  shell: /etc/rc.local

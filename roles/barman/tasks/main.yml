@@ -1,0 +1,36 @@
+---
+#------------------------------------------------------------------------------
+# Install Barman
+#------------------------------------------------------------------------------
+- name: Barman | Install Barman
+  apt:
+    name: barman
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+
+
+#------------------------------------------------------------------------------
+# barman.conf config
+#------------------------------------------------------------------------------
+- name: Barman | Append config to barman.conf
+  blockinfile:
+    dest: /etc/barman.conf
+    insertafter: EOF
+    block: |
+      [barman]
+      barman_home = {{ barman_home }}
+      barman_user = {{ barman_user }}
+      log_file = {{ log_file }}
+      compression = {{ compression }}
+      reuse_backup = {{ reuse_backup }}
+      minimum_redundancy = {{ minimum_redundancy }}
+
+      [main]
+      description = "{{ description }}"
+      ssh_command = {{ ssh_command }}
+      conninfo = {{ conninfo }}
+  notify: restart postgresql
+  tags:
+    - configuration
+    - barman

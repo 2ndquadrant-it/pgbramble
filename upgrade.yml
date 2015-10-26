@@ -1,0 +1,8 @@
+---
+- name: 'PostgreSQL Educationl Bramble Playbook | Upgrade raspbian'
+  hosts: pgbramble
+  become: yes
+
+  tasks:
+    - name: Update package list and upgrade packages
+      apt: upgrade=yes update_cache=yes

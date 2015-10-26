@@ -1,0 +1,7 @@
+---
+- name: 'PostgreSQL Educational Bramble Playbook | Backup'
+  hosts: backup
+  become: yes
+
+  roles:
+    - barman

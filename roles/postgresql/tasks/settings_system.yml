@@ -1,0 +1,37 @@
+---
+- name: System | Add changes to rc.local
+  blockinfile:
+    dest: /etc/rc.local
+    owner: root
+    group: root
+    mode: 0755
+    insertbefore: "exit 0"
+    block: |
+      # Set read-ahead
+      /sbin/blockdev --setra {{ device_readahead }} /dev/{{ device }}
+      # Create lock.local
+      [ -f /var/lock/subsys/local ] && touch /var/lock/subsys/local
+
+  notify: run rc.local
+  register: rclocal
+
+
+- name: System | Copy rsyslog
+  copy:
+    src: rsyslog-postgresql.conf
+    dest: /etc/rsyslog.d/postgresql.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart rsyslog
+  register: rsyslog
+
+
+- name: System | Copy logrotate
+  copy:
+    src: logrotate-postgresql
+    dest: /etc/logrotate.d/postgresql
+    owner: root
+    group: root
+    mode: 0644
+  register: logrotate

@@ -1,0 +1,49 @@
+---
+#------------------------------------------------------------------------------
+# Install postgresql-common
+#------------------------------------------------------------------------------
+- name: PostgreSQL | Assure dependencies are installed
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+  with_items: ["python-psycopg2", "python-pycurl", "locales"]
+
+
+- name: PostgreSQL | Install postgresql-common
+  apt:
+    name: postgresql-common
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: PostgreSQL | Check if postgresql-common.conf exists
+  stat:
+    path: /etc/postgresql-common/createcluster.conf
+  register: createcluster_conf
+
+
+# Set creating_main_cluster to avoid creation of the default cluster
+- name: PostgreSQL | Update postgresql-common.conf
+  lineinfile:
+    dest: /etc/postgresql-common/createcluster.conf
+    regexp: '^#create_main_cluster'
+    line: 'create_main_cluster = false'
+    state: present
+    backrefs: yes
+  when: createcluster_conf.stat.exists == True
+
+#------------------------------------------------------------------------------
+# Install PostgreSQL
+#------------------------------------------------------------------------------
+- name: PostgreSQL | Install PostgreSQL
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+  with_items:
+    - "postgresql-{{ pg_version }}"
+    - "postgresql-client-{{ pg_version }}"
+    - "postgresql-contrib-{{ pg_version }}"
