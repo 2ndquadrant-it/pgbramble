@@ -46,7 +46,7 @@ log_line_prefix: '%q%u@%d '
 
 # pg_stat_statements
 shared_preload_libraries: 'pg_stat_statements'
-pg_stat_statements_max: '1000'
+pg_stat_statements_max: 1000
 pg_stat_statements_track: 'all'
 
 # backup settings
@@ -63,9 +63,15 @@ hot_standby_feedback: "on"
 #------------------------------------------------------------------------------
 # pg_hba.conf variables
 #------------------------------------------------------------------------------
-pg_default_auth_method: 'trust'
+pg_default_auth_method:
+  unix: trust
+  ipv4: md5
 pg_net_access_ip: '0.0.0.0/0'
+
+replication_user: replication
+replication_user_pass: changeme
 pg_replication_ip: '0.0.0.0/0'
+
 #pg_net_access_ip: '192.168.1.0/24'
 #pg_replication_ip: '192.168.1.0/24'
 

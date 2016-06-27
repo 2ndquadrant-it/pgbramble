@@ -26,6 +26,7 @@
     dest: /etc/postgresql/{{ pg_version }}/{{ pg_cluster_name }}/postgresql.conf
     insertafter: EOF
     block: |
+
       # network settings
       listen_addresses = '{{ listen_addresses }}'
       max_connections = {{ max_connections }}
@@ -59,13 +60,15 @@
 
       # backup settings
       #archive_mode = {{ archive_mode }}
-      #wal_level = {{ wal_level }}
       #archive_command = {{ archive_command }}
 
       # standby settings
-      #max_wal_senders = {{ max_wal_senders }}
-      #hot_standby = {{ hot_standby }}
-      #hot_standby_feedback = {{ hot_standby_feedback }}
+      wal_level = {{ wal_level }}
+      max_wal_senders = {{ max_wal_senders }}
+      wal_keep_segments = 5000
+      hot_standby = {{ hot_standby }}
+      hot_standby_feedback = {{ hot_standby_feedback }}
+
   when: postgresql_conf.stat.exists == True
   notify: restart postgresql
   tags:
@@ -76,20 +79,20 @@
 # pg_hba.conf config
 #------------------------------------------------------------------------------
 - name: PostgreSQL | Check if pg_hba.conf exists
-  stat: path=/etc/postgresql/{{ pg_version }}/{{ pg_cluster_name }}/pg_hba.conf
+  stat:
+    path: "{{ pg_conf_directory }}/pg_hba.conf"
   register: pghba_conf
 
 
 - name: PostgreSQL | Append config to pg_hba.conf
   blockinfile:
-    dest: /etc/postgresql/{{ pg_version }}/{{ pg_cluster_name }}/pg_hba.conf
+    dest: "{{ pg_conf_directory }}/pg_hba.conf"
     insertafter: EOF
     block: |
-      # Local net access
-      host    all             all             {{ pg_net_access_ip }} {{pg_default_auth_method }}
 
-      # Replication
-      host    replication     replication     {{ pg_replication_ip }} {{pg_default_auth_method }}
+      # Local net access
+      host    all             all             {{ pg_net_access_ip }} {{pg_default_auth_method.unix }}
+
   when: pghba_conf.stat.exists == True
   tags:
     - configuration

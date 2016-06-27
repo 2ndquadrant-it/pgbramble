@@ -1,0 +1,7 @@
+# Replica - recovery.done
+# Streaming replication settings
+standby_mode          = 'on'
+primary_conninfo      = 'host=macchiato.local user=postgres password=changeme'
+
+# Use 'barman' as fallback method for restore
+#restore_command       = 'barman-wal-restore barman.local backup1 %f %p'

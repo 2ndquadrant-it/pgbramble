@@ -1,9 +1,25 @@
 ---
 - include: install_postgresql.yml
-  tags: [postgresql, postgresql-install]
+  tags:
+    - postgresql
+    - postgresql-install
+
 
 - include: configure_postgresql.yml
-  tags: [postgresql, postgresql-configure]
+  tags:
+    - postgresql
+    - postgresql-configure
+
+
+- include: configure_replication.yml
+  become: yes
+  become_user: postgres
+  tags:
+    - postgresql
+    - replication
+
 
 - include: settings_system.yml
-  tags: [settings-system]
+  tags:
+    - postgresql
+    - settings-system

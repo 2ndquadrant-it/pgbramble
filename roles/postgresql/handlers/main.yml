@@ -1,12 +1,19 @@
 ---
 - name: start postgresql
-  service: name=postgresql state=started
+  service: name=postgresql@{{ pg_version }}-{{ pg_cluster_name }} state=started
+
+
+- name: stop postgresql
+  service: name=postgresql@{{ pg_version }}-{{ pg_cluster_name }} state=stop
+
 
 - name: restart postgresql
-  service: name=postgresql state=restarted
+  service: name=postgresql@{{ pg_version }}-{{ pg_cluster_name }} state=restarted
+
 
 - name: restart rsyslog
   service: name=rsyslog state=restarted
+
 
 - name: run rc.local
   shell: /etc/rc.local

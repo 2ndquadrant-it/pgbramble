@@ -1,0 +1,72 @@
+---
+#------------------------------------------------------------------------------
+# PostgreSQL replication configuration
+#------------------------------------------------------------------------------
+
+- name: PostgreSQL | Create replication user on the master
+  postgresql_user:
+    name: "{{ replication_user }}"
+    #password: "{{ replication_user_pass }}"
+    #encrypted: yes
+    role_attr_flags: REPLICATION
+  when: db_role == "master"
+
+
+#------------------------------------------------------------------------------
+# pg_hba.conf config
+#------------------------------------------------------------------------------
+- name: PostgreSQL | Allow access to the replication user
+  blockinfile:
+    dest: "{{ pg_conf_directory }}/pg_hba.conf"
+    insertafter: EOF
+    block: |
+
+      # Replication
+      host    replication    {{ replication_user }}    {{ pg_replication_ip }}    {{pg_default_auth_method.unix }}
+  when: db_role == "master"
+
+
+- name: Restart postgres on the master
+  service:
+    name: postgresql@{{ pg_version }}-{{ pg_cluster_name }}
+    state: restarted
+  when: db_role == "master"
+
+
+- name: Stop postgres on the standby
+  service:
+    name: postgresql@{{ pg_version }}-{{ pg_cluster_name }}
+    state: stop
+  when: db_role == "standby"
+
+
+- name: Delete $PGDATA on the standby
+  become_user: root
+  file:
+    path: "{{ pg_data_directory }}/"
+    state: absent
+  when: db_role == "standby"
+
+
+- name: Create empty $PGDATA on the standby
+  become_user: root
+  file:
+    path: "{{ pg_data_directory }}/"
+    state: directory
+    recurse: yes
+    owner: postgres
+    group: postgres
+    mode: 0700
+  when: db_role == "standby"
+
+
+- name: Backup master into the standby
+  shell: "pg_basebackup -h macchiato.local -U replication -x -R -D {{ pg_data_directory }}/"
+  when: db_role == "standby"
+
+
+- name: Start postgres on the standby
+  service:
+    name: postgresql@{{ pg_version }}-{{ pg_cluster_name }}
+    state: start
+  when: db_role == "standby"
