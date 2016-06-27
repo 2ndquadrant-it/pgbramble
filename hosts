@@ -1,0 +1,18 @@
+[database]
+macchiato   ansible_host=macchiato.local    db_role=master
+cappuccino  ansible_host=cappuccino.local   db_role=standby
+
+[backup]
+barman      ansible_host=barman.local
+
+[webserver]
+berrynx
+
+[pgbramble:children]
+database
+webserver
+backup
+
+[pgbramble:vars]
+ansible_user=pi
+ansible_ssh_pass=raspberry
